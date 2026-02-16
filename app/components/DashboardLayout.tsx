@@ -20,7 +20,7 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="h-screen bg-gray-100 flex overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`fixed z-50 top-0 left-0 h-screen w-56 bg-white shadow-lg border-r transform transition-transform duration-300 
@@ -60,7 +60,7 @@ export default function DashboardLayout({
       )}
 
       {/* Main */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header */}
         <header className="bg-white shadow-sm border-b px-4 py-4 flex justify-between items-center sticky top-0 z-30">
           <button
@@ -83,7 +83,9 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="p-6 max-w-4xl mx-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto hide-scrollbar p-6 max-w-4xl mx-auto w-full">
+          {children}
+        </main>
       </div>
     </div>
   );

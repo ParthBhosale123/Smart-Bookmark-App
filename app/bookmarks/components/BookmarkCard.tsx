@@ -7,6 +7,7 @@ export default function BookmarkCard({
   editingId,
   editTitle,
   editUrl,
+  highlightId,
   setEditTitle,
   setEditUrl,
   startEdit,
@@ -20,6 +21,7 @@ export default function BookmarkCard({
   editingId: string | null;
   editTitle: string;
   editUrl: string;
+  highlightId: string | null;
   setEditTitle: (val: string) => void;
   setEditUrl: (val: string) => void;
   startEdit: (bookmark: Bookmark) => void;
@@ -30,7 +32,14 @@ export default function BookmarkCard({
   getFaviconUrl: (url: string) => string | null;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow duration-200">
+    <div
+      className={`bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow duration-200
+  ${
+    highlightId === bookmark.id
+      ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50"
+      : ""
+  }`}
+    >
       {editingId === bookmark.id ? (
         <div className="space-y-3">
           <input

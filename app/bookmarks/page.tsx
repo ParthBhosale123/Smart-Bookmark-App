@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import DashboardLayout from "../components/DashboardLayout";
 import toast from "react-hot-toast";
@@ -12,6 +12,9 @@ import Pagination from "./components/Pagination";
 
 export default function BookmarksPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const [user, setUser] = useState<any>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -30,6 +33,32 @@ export default function BookmarksPage() {
 
   const pageSize = 9;
   const totalPages = Math.ceil(totalBookmarks / pageSize);
+
+  const fetchBookmarks = async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+
+    const from = (currentPage - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from("bookmarks")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      toast.error("Failed to fetch bookmarks");
+      console.error("Fetch Error:", error);
+    } else {
+      setBookmarks(data || []);
+      setTotalBookmarks(count || 0);
+    }
+
+    setLoading(false);
+  };
 
   // Check session once
   useEffect(() => {
@@ -51,30 +80,6 @@ export default function BookmarksPage() {
   // Fetch bookmarks + realtime
   useEffect(() => {
     if (!user?.id) return;
-
-    const fetchBookmarks = async () => {
-      setLoading(true);
-
-      const from = (currentPage - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await supabase
-        .from("bookmarks")
-        .select("*", { count: "exact" })
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .range(from, to);
-
-      if (error) {
-        toast.error("Failed to fetch bookmarks");
-        console.error("Fetch Error:", error);
-      } else {
-        setBookmarks(data || []);
-        setTotalBookmarks(count || 0);
-      }
-
-      setLoading(false);
-    };
 
     fetchBookmarks();
 
@@ -98,6 +103,21 @@ export default function BookmarksPage() {
       supabase.removeChannel(channel);
     };
   }, [user, currentPage]);
+
+  useEffect(() => {
+    const newId = searchParams.get("new");
+
+    if (!newId) return;
+
+    setHighlightId(newId);
+
+    const timer = setTimeout(() => {
+      setHighlightId(null);
+      router.replace("/bookmarks"); // remove query param
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchParams, router]);
 
   // Delete Modal Open
   const openDeleteModal = (bookmark: Bookmark) => {
@@ -125,12 +145,8 @@ export default function BookmarksPage() {
     } else {
       toast.success("Bookmark deleted successfully");
 
-      setBookmarks((prev) => prev.filter((b) => b.id !== deleteId));
-      setTotalBookmarks((prev) => prev - 1);
-
-      if (bookmarks.length === 1 && currentPage > 1) {
-        setCurrentPage((prev) => prev - 1);
-      }
+      // ✅ This will fill the missing slot
+      await fetchBookmarks();
     }
 
     setDeleteId(null);
@@ -249,6 +265,7 @@ export default function BookmarksPage() {
               openDeleteModal={openDeleteModal}
               formatDate={formatDate}
               getFaviconUrl={getFaviconUrl}
+              highlightId={highlightId}
             />
 
             <Pagination

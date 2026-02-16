@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 import DashboardLayout from "../components/DashboardLayout";
 import toast from "react-hot-toast";
 
 export default function AddBookmarkPage() {
   const [user, setUser] = useState<any>(null);
+
+  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -69,13 +72,17 @@ export default function AddBookmarkPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.from("bookmarks").insert([
-      {
-        title: title.trim(),
-        url: url.trim(),
-        user_id: user.id,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .insert([
+        {
+          title: title.trim(),
+          url: url.trim(),
+          user_id: user.id,
+        },
+      ])
+      .select()
+      .single();
 
     if (error) {
       console.log("Supabase Insert Error:", error);
@@ -91,6 +98,10 @@ export default function AddBookmarkPage() {
       setTitle("");
       setUrl("");
       setErrors({ title: "", url: "" });
+
+      setTimeout(() => {
+        router.push(`/bookmarks?new=${data.id}`);
+      }, 300);
     }
 
     setLoading(false);

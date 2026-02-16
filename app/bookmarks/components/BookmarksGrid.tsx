@@ -16,6 +16,7 @@ export default function BookmarksGrid({
   openDeleteModal,
   formatDate,
   getFaviconUrl,
+  highlightId,
 }: {
   bookmarks: Bookmark[];
   editingId: string | null;
@@ -29,6 +30,7 @@ export default function BookmarksGrid({
   openDeleteModal: (bookmark: Bookmark) => void;
   formatDate: (date: string) => string;
   getFaviconUrl: (url: string) => string | null;
+  highlightId: string | null;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -47,6 +49,7 @@ export default function BookmarksGrid({
           openDeleteModal={openDeleteModal}
           formatDate={formatDate}
           getFaviconUrl={getFaviconUrl}
+          highlightId={highlightId}
         />
       ))}
     </div>
